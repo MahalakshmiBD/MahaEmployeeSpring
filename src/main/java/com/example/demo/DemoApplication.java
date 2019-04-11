@@ -4,6 +4,7 @@ import com.example.entity.EmployeeDB;
 import com.example.service.EmployeeService;
 import com.example.util.EmployeeUtil;
 
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -48,13 +49,17 @@ public class DemoApplication {
    public ResponseEntity<Object> readEmployee(@PathVariable("id") String id) {
       Employee resultEmp = new Employee();
       if(EmployeeUtil.checkValidID(id)){
-         EmployeeDB empDB = employeeService.readEmployee(id);
-         resultEmp = EmployeeUtil.convertOneDBObject(empDB);
-         if(EmployeeUtil.checkStringNotNull(resultEmp.getFirstName())){
-            resultEmp.setMessage("Employee Data read successfully");         
-          }else{
-            resultEmp.setId(Integer.parseInt(id.trim()));
-            resultEmp.setMessage("Invalid Employee Id");
+         try{
+            EmployeeDB empDB = employeeService.readEmployee(id);
+            resultEmp = EmployeeUtil.convertOneDBObject(empDB);
+            if(EmployeeUtil.checkStringNotNull(resultEmp.getFirstName())){
+               resultEmp.setMessage("Employee Data read successfully");         
+            }else{
+               resultEmp.setId(Integer.parseInt(id.trim()));
+               resultEmp.setMessage("Employee Data not found for Id");
+            }
+         }catch(Exception e){
+            resultEmp.setMessage("Error while getting employee records");
          }
       }else{
          resultEmp.setMessage("Invalid Employee Id, Enter a numeric value");
@@ -69,10 +74,16 @@ public class DemoApplication {
     */
    @RequestMapping(value = "/createEmployee", method = RequestMethod.POST)
    public ResponseEntity<Object> createEmployee(@RequestBody Employee employee) {
-      EmployeeDB empDB = EmployeeUtil.getDBObject(employee);   
-      EmployeeDB createdEmpDB = employeeService.saveEmployee(empDB);
-      Employee createdEmp = EmployeeUtil.convertOneDBObject(createdEmpDB);
-      createdEmp.setMessage("Employee record is created successfully");
+      EmployeeDB empDB = EmployeeUtil.getDBObject(employee); 
+      EmployeeDB createdEmpDB = new EmployeeDB(); 
+      Employee createdEmp = new Employee();
+     try{ 
+         createdEmpDB = employeeService.saveEmployee(empDB);
+         createdEmp = EmployeeUtil.convertOneDBObject(createdEmpDB);
+         createdEmp.setMessage("Employee record is created successfully");
+     }catch(Exception e){
+         createdEmp.setMessage("Error while trying to save Employee records");     
+       }       
       return new ResponseEntity<>(createdEmp, HttpStatus.CREATED);
    }
 
@@ -86,19 +97,19 @@ public class DemoApplication {
    public ResponseEntity<Object> updateEmployee(@PathVariable("id") String id, @RequestBody Employee employee) { 
       EmployeeDB empDB = EmployeeUtil.getDBObject(employee);
       Employee updatedEmp = new Employee();
-      if(EmployeeUtil.checkValidID(id)){
-         EmployeeDB updatedEmpDB = employeeService.updEmployeeDB(id, empDB);
-         updatedEmp = EmployeeUtil.convertOneDBObject(updatedEmpDB);
-         if(EmployeeUtil.checkStringNotNull(updatedEmp.getFirstName())){
-            updatedEmp.setMessage("Employee data updated successsfully");
-         }else{
-            updatedEmp.setId(Integer.parseInt(id));
+         try{
+            EmployeeDB updatedEmpDB = employeeService.updEmployeeDB(id, empDB);
+            updatedEmp = EmployeeUtil.convertOneDBObject(updatedEmpDB);
+            if(EmployeeUtil.checkStringNotNull(updatedEmp.getFirstName())){
+               updatedEmp.setMessage("Employee data updated successsfully");
+            }else{
+               updatedEmp.setId(Integer.parseInt(id));
+               updatedEmp.setMessage("Unable to update Employee Data");
+            }
+         }catch(Exception e){
             updatedEmp.setMessage("Unable to update Employee Data");
          }
-      }else{
-
-      }
-	  return new ResponseEntity<>(updatedEmp, HttpStatus.OK);
+ 	  return new ResponseEntity<>(updatedEmp, HttpStatus.OK);
    }
 
    /**
@@ -108,15 +119,15 @@ public class DemoApplication {
    public ResponseEntity<Object> delete(@PathVariable("id") String id) { 
       Employee deletedEmp = new Employee();
       deletedEmp.setId(Integer.parseInt(id.trim()));
-      if(EmployeeUtil.checkValidID(id)){
+      try{
          int result = employeeService.deleteEmp(id);     
          if (result == 1){
           deletedEmp.setMessage("Employee Informations is deleted successsfully");         
          }else{
-          deletedEmp.setMessage("Employee Informations is could not be deleted");
+            deletedEmp.setMessage("Unable to delete Employee Information");
          }
-      }else{
-         deletedEmp.setMessage("Invalid Employee Id");
+      }catch(Exception e){
+         deletedEmp.setMessage("Unable to delete Employee Information");
       }
       return new ResponseEntity<>(deletedEmp, HttpStatus.OK);
    }
