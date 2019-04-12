@@ -1,6 +1,7 @@
 package com.example.demo;
 
 import com.example.entity.EmployeeDB;
+import com.example.exception.UserDefinedEmployeeException;
 import com.example.service.EmployeeService;
 import com.example.util.EmployeeUtil;
 
@@ -55,14 +56,17 @@ public class DemoApplication {
             if(EmployeeUtil.checkStringNotNull(resultEmp.getFirstName())){
                resultEmp.setMessage("Employee Data read successfully");         
             }else{
-               resultEmp.setId(Integer.parseInt(id.trim()));
-               resultEmp.setMessage("Employee Data not found for Id");
+               //resultEmp.setId(Integer.parseInt(id.trim()));
+               //resultEmp.setMessage("Employee Data not found for Id");
+               throw new UserDefinedEmployeeException("Employee Data not found for Id" +id);
             }
          }catch(Exception e){
-            resultEmp.setMessage("Error while getting employee records");
+            //resultEmp.setMessage("Error while getting employee records");
+            throw new UserDefinedEmployeeException("Error while getting employee records");
          }
       }else{
-         resultEmp.setMessage("Invalid Employee Id, Enter a numeric value");
+         //resultEmp.setMessage("Invalid Employee Id, Enter a numeric value");
+         throw new UserDefinedEmployeeException("Invalid Employee Id, Enter a numeric value");
       }
       return new ResponseEntity<>(resultEmp, HttpStatus.OK);
    }
@@ -82,8 +86,9 @@ public class DemoApplication {
          createdEmp = EmployeeUtil.convertOneDBObject(createdEmpDB);
          createdEmp.setMessage("Employee record is created successfully");
      }catch(Exception e){
-         createdEmp.setMessage("Error while trying to save Employee records");     
-       }       
+        // createdEmp.setMessage("Error while trying to save Employee records");     
+        throw new UserDefinedEmployeeException("Error while trying to save Employee records");
+     }       
       return new ResponseEntity<>(createdEmp, HttpStatus.CREATED);
    }
 
@@ -103,11 +108,13 @@ public class DemoApplication {
             if(EmployeeUtil.checkStringNotNull(updatedEmp.getFirstName())){
                updatedEmp.setMessage("Employee data updated successsfully");
             }else{
-               updatedEmp.setId(Integer.parseInt(id));
-               updatedEmp.setMessage("Unable to update Employee Data");
+               //updatedEmp.setId(Integer.parseInt(id));
+               //updatedEmp.setMessage("Unable to update Employee Data");
+               throw new UserDefinedEmployeeException("Unable to update Employee Data for id " + id);
             }
          }catch(Exception e){
-            updatedEmp.setMessage("Unable to update Employee Data");
+            //updatedEmp.setMessage("Unable to update Employee Data");
+            throw new UserDefinedEmployeeException("Unable to update Employee Data");
          }
  	  return new ResponseEntity<>(updatedEmp, HttpStatus.OK);
    }
@@ -124,10 +131,12 @@ public class DemoApplication {
          if (result == 1){
           deletedEmp.setMessage("Employee Informations is deleted successsfully");         
          }else{
-            deletedEmp.setMessage("Unable to delete Employee Information");
+            //deletedEmp.setMessage("Unable to delete Employee Information");
+            throw new UserDefinedEmployeeException("Unable to delete Employee Information");
          }
       }catch(Exception e){
-         deletedEmp.setMessage("Unable to delete Employee Information");
+         //deletedEmp.setMessage("Unable to delete Employee Information");
+         throw new UserDefinedEmployeeException("Unable to delete Employee Information");
       }
       return new ResponseEntity<>(deletedEmp, HttpStatus.OK);
    }
@@ -144,4 +153,8 @@ public class DemoApplication {
       return new ResponseEntity<>
                    (EmployeeUtil.convertDBObjects(employeeService.getAllEmployee()), HttpStatus.OK);     
    }
+
+  
+
 }
+
