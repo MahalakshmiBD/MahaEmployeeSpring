@@ -53,22 +53,20 @@ public class DemoApplication {
    public ResponseEntity<Object> readEmployee(@PathVariable("id") String id) {
       Employee resultEmp = new Employee();
       if(EmployeeUtil.checkValidID(id)){
+         EmployeeDB empDB;
          try{
-            EmployeeDB empDB = employeeService.readEmployee(id);
-            resultEmp = EmployeeUtil.convertOneDBObject(empDB);
-            if(EmployeeUtil.checkStringNotNull(resultEmp.getFirstName())){
+             empDB = employeeService.readEmployee(id);
+          }catch(Exception e){
+            throw new UserDefinedEmployeeException("Error while getting employee records");
+          }
+            if(null != empDB){
+               resultEmp = EmployeeUtil.convertOneDBObject(empDB);
                resultEmp.setMessage("Employee Data read successfully");         
             }else{
-               //resultEmp.setId(Integer.parseInt(id.trim()));
-               //resultEmp.setMessage("Employee Data not found for Id");
-               throw new UserDefinedEmployeeException("Employee Data not found for Id" +id);
+               throw new UserDefinedEmployeeException("Employee Data not found for Id " +id);
             }
-         }catch(Exception e){
-            //resultEmp.setMessage("Error while getting employee records");
-            throw new UserDefinedEmployeeException("Error while getting employee records");
-         }
+        
       }else{
-         //resultEmp.setMessage("Invalid Employee Id, Enter a numeric value");
          throw new UserDefinedEmployeeException("Invalid Employee Id, Enter a numeric value");
       }
       return new ResponseEntity<>(resultEmp, HttpStatus.OK);
@@ -89,7 +87,6 @@ public class DemoApplication {
          createdEmp = EmployeeUtil.convertOneDBObject(createdEmpDB);
          createdEmp.setMessage("Employee record is created successfully");
      }catch(Exception e){
-        // createdEmp.setMessage("Error while trying to save Employee records");     
         throw new UserDefinedEmployeeException("Error while trying to save Employee records");
      }       
       return new ResponseEntity<>(createdEmp, HttpStatus.CREATED);
@@ -105,20 +102,18 @@ public class DemoApplication {
    public ResponseEntity<Object> updateEmployee(@PathVariable("id") String id, @RequestBody Employee employee) { 
       EmployeeDB empDB = EmployeeUtil.getDBObject(employee);
       Employee updatedEmp = new Employee();
+      EmployeeDB updatedEmpDB;
          try{
-            EmployeeDB updatedEmpDB = employeeService.updEmployeeDB(id, empDB);
-            updatedEmp = EmployeeUtil.convertOneDBObject(updatedEmpDB);
-            if(EmployeeUtil.checkStringNotNull(updatedEmp.getFirstName())){
-               updatedEmp.setMessage("Employee data updated successsfully");
-            }else{
-               //updatedEmp.setId(Integer.parseInt(id));
-               //updatedEmp.setMessage("Unable to update Employee Data");
-               throw new UserDefinedEmployeeException("Unable to update Employee Data for id " + id);
-            }
+            updatedEmpDB = employeeService.updEmployeeDB(id, empDB);
          }catch(Exception e){
-            //updatedEmp.setMessage("Unable to update Employee Data");
             throw new UserDefinedEmployeeException("Unable to update Employee Data");
          }
+            updatedEmp = EmployeeUtil.convertOneDBObject(updatedEmpDB);
+            if(null != updatedEmpDB){
+               updatedEmp.setMessage("Employee data updated successsfully");
+            }else{              
+               throw new UserDefinedEmployeeException("Unable to update Employee Data for id " + id);
+            }        
  	  return new ResponseEntity<>(updatedEmp, HttpStatus.OK);
    }
 
@@ -134,11 +129,9 @@ public class DemoApplication {
          if (result == 1){
           deletedEmp.setMessage("Employee Informations is deleted successsfully");         
          }else{
-            //deletedEmp.setMessage("Unable to delete Employee Information");
             throw new UserDefinedEmployeeException("Unable to delete Employee Information");
          }
       }catch(Exception e){
-         //deletedEmp.setMessage("Unable to delete Employee Information");
          throw new UserDefinedEmployeeException("Unable to delete Employee Information");
       }
       return new ResponseEntity<>(deletedEmp, HttpStatus.OK);
